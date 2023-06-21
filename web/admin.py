@@ -6,3 +6,4 @@ from .models import *
 reg = admin.site.register
 reg(Expense)
 reg(Income)
+reg(Token)
