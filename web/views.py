@@ -68,7 +68,7 @@ def register(request):
             subject = "verify Bestoon account"
             body = f"""
             please click link to activate your account:
-            http://localhost:8000/register?email={email}&code={code}
+            http://{request.get_host()}/register?email={email}&code={code}
             """
             secret_file = pathlib.Path(os.path.join(BASE_DIR, f"web/{url}"))
             sender_host_password = json.loads(secret_file.read_text())
