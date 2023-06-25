@@ -29,3 +29,14 @@ class Income(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     def __str__(self):
         return f"{self.amount} in {self.date}"
+
+
+class PasswordResetCodes(models.Model):
+    """save user password and information"""
+    code = models.CharField(max_length=32)
+    date = models.DateTimeField()
+    email = models.EmailField()
+    user_name = models.CharField(max_length=50)
+    password = models.CharField(max_length=50)
+    def __str__(self):
+        return f"{self.user_name}"
