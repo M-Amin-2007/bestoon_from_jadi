@@ -4,8 +4,19 @@
 {% endblock %}
 {% block content %}
     <div class="container">
-        <h1>Welcome to Bestoon!</h1>
-        <p>please Enter your information and press send verify email</p>
-            <p style="color : rgba(255, 0, 0, 0.7)">{{ message }}</p>
+    <h1>login</h1>
+        <p>please Enter your information press login.</p>
+            <form method="post">
+                <div class="mb-3 form-floating">
+                    <input type="text" id="id_username" name="username" class="form-control" placeholder="username" required>
+                    <label for="id_username">user name</label>
+                </div>
+                <div class="mb-3 form-floating">
+                    <input type="password" id="id_password" name="password" class="form-control" placeholder="password" required>
+                    <label for="id_password">password</label>
+                </div>
+                <p style="color : rgba(255, 0, 0, 0.7)">{{ message }}</p>
+                <input type="submit" value="login" class="btn btn-primary">
+            </form>
     </div>
 {% endblock %}

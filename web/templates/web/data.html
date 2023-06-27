@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block head %}
+<title>{{ title }}</title>
+{% endblock %}
+{% block content %}
+    <div class="container shadow p-3 mb-5 bg-white rounded">
+        <table class="table">
+            <thead class="table-info">
+                <th scope="col" class="text-center">#</th>
+                <th scope="col" class="text-center">text</th>
+                <th scope="col" class="text-center">amount(tooman)</th>
+                <th scope="col" class="text-center">date</th>
+                <th scope="col" class="text-center"></th>
+            </thead>
+            <tbody>
+            {% for num, data in datas %}
+                <tr>
+                    <th class="text-center">{{ num | add:1}}</th>
+                    <td class="text-center">{{ data.text }}</td>
+                    <td class="text-center">{{ data.amount }}</td>
+                    <td class="text-center">{{ data.date }}</td>
+                    <td class="text-center"><form action="{% url "web:delete_method" data.id title %}" method="post">
+                        <input type="submit" class="btn btn-danger" value="delete">
+                    </form></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div><div class="container shadow p-3 mb-5 bg-white rounded">
+        <h3>submit new {{ title }} here.</h3>
+        <form method="post">
+            <div class="mb-3 form-floating">
+                <input type="text" id="id_text" name="text" class="form-control" placeholder="text" required>
+                <label for="id_text">text</label>
+            </div>
+            <div class="mb-3 form-floating">
+                <input type="number" id="id_amount" name="amount" class="form-control" placeholder="amount" required>
+                <label for="id_amount">amount</label>
+            </div>
+            <div class="mb-3 form-floating">
+                <input type="datetime-local" id="id_date" name="date" class="form-control" placeholder="amount" aria-describedby="help_message">
+                <label for="id_date">date & time</label>
+                <small id="help_message" style="color: rgba(255, 0, 0, 0.6)">if you don't fill out this field. it automatically will be now.</small>
+            </div>
+            <input type="submit" value="submit" class="btn btn-primary">
+        </form>
+    </div>
+{% endblock %}

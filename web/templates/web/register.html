@@ -7,21 +7,21 @@
         <h1>Welcome to Bestoon!</h1>
     {% if status %}
         <p>please Enter your information and press send verify email</p>
-            <form class="" method="post">
-                <div class="mb-3">
-                    <label for="id_username" class="">user name:</label>
-                    <input type="text" id="id_username" name="username">
+            <form method="post">
+                <div class="mb-3 form-floating">
+                    <input type="text" id="id_username" name="username" class="form-control" placeholder="username" required>
+                    <label for="id_username">user name</label>
                 </div>
-                <div class="mb-3">
-                    <label for="id_email">email:</label>
-                    <input type="email" id="id_email" name="email">
+                <div class="mb-3 form-floating">
+                    <input type="email" id="id_email" name="email" class="form-control" placeholder="example@domain.com" required>
+                    <label for="id_email">email</label>
                 </div>
-                <div class="mb-3">
-                    <label for="id_password">password:</label>
-                    <input type="password" id="id_password" name="password">
+                <div class="mb-3 form-floating">
+                    <input type="password" id="id_password" name="password" class="form-control" placeholder="password" required>
+                    <label for="id_password">password</label>
                 </div>
                 <p style="color : rgba(255, 0, 0, 0.7)">{{ message }}</p>
-                <input type="submit" value="verify">
+                <input type="submit" value="verify" class="btn btn-primary">
             </form>
     {% else %}
         <p>please Enter your information and press send verify email</p>

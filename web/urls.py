@@ -5,7 +5,11 @@ from . import views
 app_name = "web"
 
 urlpatterns = [
-    path("submit/expense/", views.expense_submit, name="expense_submit"),
-    path("submit/income/", views.income_submit, name="income_submit"),
+    path("expense/", views.expense, name="expense"),
+    path("income/", views.income, name="income"),
+    path("delete/<pk>/<db>/", views.delete_item, name="delete_method"),
     path("register/", views.register, name="register"),
+    path("login/", views.login_view, name="login"),
+    path("user/", views.user, name="user"),
+    path("", views.home, name="home"),
 ]
