@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block head %}
+<title>password</title>
+{% endblock %}
+{% block content %}
+<div class="container">
+<form method="post">
+    <div class="mb-3 form-floating">
+        <input type="email" id="id_email" name="new_email" class="form-control" placeholder="email" required>
+        <label for="id_email">email</label>
+    </div>
+    <p style="color : rgba(255, 0, 0, 0.7)">{{ message }}</p>
+    <input type="submit" value="send verify email" class="btn btn-primary">
+
+</form>
+</div>
+{% endblock %}

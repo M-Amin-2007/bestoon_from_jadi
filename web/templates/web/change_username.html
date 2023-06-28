@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block head %}
+<title>password</title>
+{% endblock %}
+{% block content %}
+<div class="container">
+<form method="post">
+    <div class="mb-3 form-floating">
+        <input type="text" id="id_username" name="new_username" class="form-control" placeholder="username" required>
+        <label for="id_username">new username</label>
+    </div>
+    <p style="color : rgba(255, 0, 0, 0.7)">{{ message }}</p>
+    <input type="submit" value="change" class="btn btn-primary">
+
+</form>
+</div>
+{% endblock %}

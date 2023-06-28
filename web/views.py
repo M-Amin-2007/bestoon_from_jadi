@@ -1,11 +1,12 @@
 """create app views"""
 import ssl, smtplib, json, os, pathlib, string, random
 from email.message import EmailMessage
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.http import Http404
 from bestoon.settings import BASE_DIR
 from .models import *
 import datetime
@@ -13,13 +14,17 @@ from django.templatetags.static import static
 
 # TODO: add csrf tokens, add js validation to form before submit, add multiple delete for tables
 # TODO: add edit button to tables
-# TODO: user panel: 1-logout 2-change password, name, email , change the form of user button when it wasn't login
-# TODO: move register button under sign in form, change "register" to "sign up"
+# TODO: move register button under sign in form, change name of "register" to "sign up"
+# TODO: add suggestions part, make navbar constant, unable user to login when user is authenticated
+# TODO: change Home page figure when user login, correct login page title
+# TODO: change paragraphs and expressions, move user account (making, changing, login) parts to another app
+# TODO: move sender email to secret.json
+
 url = static("web/secret.json")
 now = datetime.datetime.now
 def random_str(n):
     """returns a random str that not exit before this"""
-    characters = string.ascii_lowercase + string.ascii_uppercase + string.digits + ["$", "%", "&", "^", "?"]
+    characters = string.ascii_lowercase + string.ascii_uppercase + string.digits
     random_string = ""
     for _ in range(n):
         random_string += random.choice(characters)
@@ -63,8 +68,7 @@ def register(request):
                 server.sendmail(sender, email, em.as_string())
             PasswordResetCodes.objects.create(email = email, date = now(), code = code, user_name = username, password= password)
 
-            page_context = {"message": "click on link send to your email. it can be in spam part", "status":False}
-            return render(request, "web/register.html", context=page_context)
+            return render(request, "web/email_send.html")
     elif "code" in request.GET.keys():
         email = request.GET["email"]
         code = request.GET["code"]
@@ -86,7 +90,7 @@ def home(request):
     return render(request, "web/home.html")
 
 
-def user(request):
+def user_view(request):
     """user panel view."""
     if request.user.is_authenticated:
         return render(request, "web/user.html")
@@ -97,13 +101,17 @@ def user(request):
 def login_view(request):
     """login page view."""
     if request.POST:
-        this_user = authenticate(username=request.POST["username"], password=request.POST["password"])
-        if this_user:
-            login(request, this_user)
-            return redirect(reverse("web:user"))
-        else:
-            context = {"message": "this user isn't exist or password is incorrect."}
+        if not User.objects.filter(username=request.POST["username"]):
+            context = {"message": "this user isn't exist."}
             return render(request, "web/login.html", context=context)
+        else:
+            this_user = authenticate(username=request.POST["username"], password=request.POST["password"])
+            if this_user is not None:
+                login(request, this_user)
+                return redirect(reverse("web:user"))
+            else:
+                context = {"message": "password is incorrect."}
+                return render(request, "web/login.html", context=context)
 
     else:
         context = {"message":""}
@@ -150,3 +158,117 @@ def delete_item(request, pk, db):
     elif db == "expense":
         Expense.objects.get(pk=pk).delete()
         return redirect(reverse("web:expense"))
+
+@csrf_exempt
+def change_password(request):
+    """change password"""
+    if request.method == "GET":
+        raise Http404("not found!")
+    elif request.user.is_authenticated:
+        if "pass1" in request.POST:
+            pass1 = request.POST.get("pass1")
+            new_pass_repeat = request.POST.get("pass2")
+            new_pass = request.POST.get("new_pass")
+            this_user = request.user
+            if new_pass != new_pass_repeat:
+                context = {"message": "your repeat field isn't correct!"}
+                return render(request, "web/change_password.html", context=context)
+            elif authenticate(username=this_user.username, password=pass1) != this_user:
+                context = {"message": "the old password is incorrect!"}
+                return render(request, "web/change_password.html", context=context)
+            else:
+                this_user.set_password(new_pass)
+                this_user.save()
+                login(request, this_user)
+                return redirect(reverse("web:user"))
+        else:
+            context={"message":""}
+            return render(request, "web/change_password.html", context=context)
+    else:
+        return redirect(reverse("web:login"))
+
+@csrf_exempt
+def change_username(request):
+    """change password"""
+    if request.method == "GET":
+        raise Http404("not found!")
+    elif request.user.is_authenticated:
+        if "new_username" in request.POST:
+            new_username = request.POST.get("new_username")
+            this_user = request.user
+            if User.objects.filter(username=new_username).exists():
+                context = {"message": "this username exists. you can't use it."}
+                return render(request, "web/change_username.html", context=context)
+            else:
+                this_user.username = new_username
+                this_user.save()
+                login(request, this_user)
+                return redirect(reverse("web:user"))
+        else:
+            context={"message":""}
+            return render(request, "web/change_username.html", context=context)
+    else:
+        return redirect(reverse("web:login"))
+
+@csrf_exempt
+def change_email(request):
+    """change password"""
+    if request.user.is_authenticated:
+        if request.method == "GET":
+            if "code" in request.GET:
+                code = request.GET.get("code")
+                email = request.GET.get("email")
+                code_temp = PasswordResetCodes.objects.get(code=code)
+                this_user = request.user
+                if not code_temp.user_name == this_user.username:
+                    context = {"message":"this activating code is not valid for this user."}
+                    return render(request, "web/change_email.html", context=context)
+                else:
+                    this_user.email = email
+                    this_user.save()
+                    login(request, this_user)
+                    return redirect(reverse("web:user"))
+            else:
+                raise Http404("not found!")
+
+        if "new_email" in request.POST:
+            new_email = request.POST.get("new_email")
+            this_user = request.user
+            if User.objects.filter(username=new_email).exists():
+                context = {"message": "this email was used before this."}
+                return render(request, "web/change_email.html", context=context)
+            else:
+                code = random_str(30)
+                sender = "bestoon2023@gmail.com"
+                password = json.loads(pathlib.Path(os.path.join(BASE_DIR, f"web/{url}")).read_text())
+                prefix = "https://" if request.is_secure() else "http://"
+                body = f"""
+                click on this link to change your email to this email:
+                {prefix}{request.get_host()}/change_email/?email={new_email}&code={code}
+                """
+                message = EmailMessage()
+                message["Subject"] = "Bestoon"
+                message["From"] = sender
+                message["To"] = new_email
+                message.set_content(body)
+                ssl_context = ssl.create_default_context()
+                with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl_context) as server:
+                    server.login(sender, password)
+                    server.sendmail(sender, new_email, message.as_string())
+                PasswordResetCodes.objects.create(code=code, user_name=this_user.username, password="",\
+                                                  date=now(), email=new_email)
+                return render(request, "web/email_send.html")
+        else:
+            context={"message":""}
+            return render(request, "web/change_email.html", context=context)
+    else:
+        return redirect(reverse("web:login"))
+
+@csrf_exempt
+def logout_view(request):
+    """log out user"""
+    if request.method == "GET":
+        raise Http404("not found!")
+    else:
+        logout(request)
+        return redirect(reverse("web:user"))
