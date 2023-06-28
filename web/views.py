@@ -18,8 +18,6 @@ from django.templatetags.static import static
 # TODO: add suggestions part, make navbar constant, unable user to login when user is authenticated
 # TODO: change Home page figure when user login, correct login page title
 # TODO: change paragraphs and expressions, move user account (making, changing, login) parts to another app
-# TODO: move sender email to secret.json
-# TODO: make lower email and make capital usernames before saving
 
 url = static("web/secret.json")
 now = datetime.datetime.now
@@ -37,17 +35,17 @@ def random_str(n):
 def register(request):
     """register user."""
     if request.POST:
-        if User.objects.filter(email=request.POST["email"]).exists():
+        email = request.POST.get("email").lower()
+        password = make_password(request.POST.get("password"))
+        username = request.POST.get("username").lower().title()
+        if User.objects.filter(email=email).exists():
             page_context = {"message": "this email was used before this.", "status":True}
             return render(request, "web/register.html", context=page_context)
-        elif User.objects.filter(username=request.POST["username"]).exists():
+        elif User.objects.filter(username=username).exists():
             page_context = {"message": "this username was used before this.", "status":True}
             return render(request, "web/register.html", context=page_context)
         else:
             code = random_str(28)
-            email = request.POST["email"]
-            password = make_password(request.POST["password"])
-            username = request.POST["username"]
             # send mail
             secret_file = pathlib.Path(os.path.join(BASE_DIR, f"web/{url}"))
             sender_info = json.loads(secret_file.read_text())
@@ -102,11 +100,12 @@ def user_view(request):
 def login_view(request):
     """login page view."""
     if request.POST:
-        if not User.objects.filter(username=request.POST["username"]):
+        username = request.POST.get("username").lower().title()
+        if not User.objects.filter(username=username):
             context = {"message": "this user isn't exist."}
             return render(request, "web/login.html", context=context)
         else:
-            this_user = authenticate(username=request.POST["username"], password=request.POST["password"])
+            this_user = authenticate(username=username, password=request.POST.get("password"))
             if this_user is not None:
                 login(request, this_user)
                 return redirect(reverse("web:user"))
@@ -123,8 +122,8 @@ def income(request):
     """incomes"""
     if request.user.is_authenticated:
         if request.method == "POST":
-            text = request.POST["text"]
-            amount = request.POST["amount"]
+            text = request.POST.get("text")
+            amount = request.POST.get("amount")
             date = request.POST.get("date")
             if not date: date = now()
             Income.objects.create(text=text, amount=amount, date=date, this_user=request.user)
@@ -139,8 +138,8 @@ def expense(request):
     """expenses"""
     if request.user.is_authenticated:
         if request.method == "POST":
-            text = request.POST["text"]
-            amount = request.POST["amount"]
+            text = request.POST.get("text")
+            amount = request.POST.get("amount")
             date = request.POST.get("date")
             if not date: date = now()
             Expense.objects.create(text=text, amount=amount, date=date, this_user=request.user)
@@ -195,7 +194,7 @@ def change_username(request):
         raise Http404("not found!")
     elif request.user.is_authenticated:
         if "new_username" in request.POST:
-            new_username = request.POST.get("new_username")
+            new_username = request.POST.get("new_username").lower().title
             this_user = request.user
             if User.objects.filter(username=new_username).exists():
                 context = {"message": "this username exists. you can't use it."}
@@ -218,7 +217,7 @@ def change_email(request):
         if request.method == "GET":
             if "code" in request.GET:
                 code = request.GET.get("code")
-                email = request.GET.get("email")
+                email = request.GET.get("email").lower()
                 code_temp = PasswordResetCodes.objects.get(code=code)
                 this_user = request.user
                 if not code_temp.user_name == this_user.username:
@@ -233,7 +232,7 @@ def change_email(request):
                 raise Http404("not found!")
 
         if "new_email" in request.POST:
-            new_email = request.POST.get("new_email")
+            new_email = request.POST.get("new_email").lower()
             this_user = request.user
             if User.objects.filter(username=new_email).exists():
                 context = {"message": "this email was used before this."}
