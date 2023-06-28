@@ -19,6 +19,7 @@ from django.templatetags.static import static
 # TODO: change Home page figure when user login, correct login page title
 # TODO: change paragraphs and expressions, move user account (making, changing, login) parts to another app
 # TODO: move sender email to secret.json
+# TODO: make lower email and make capital usernames before saving
 
 url = static("web/secret.json")
 now = datetime.datetime.now
@@ -48,23 +49,23 @@ def register(request):
             password = make_password(request.POST["password"])
             username = request.POST["username"]
             # send mail
-            sender = 'bestoon2023@gmail.com'
-            subject = "verify Bestoon account"
+            secret_file = pathlib.Path(os.path.join(BASE_DIR, f"web/{url}"))
+            sender_info = json.loads(secret_file.read_text())
+            sender = sender_info.get("sender_email")
+            sender_password = sender_info.get("password")
             prefix = "https://" if request.is_secure() else "http://"
             body = f"""
             please click link to activate your account:
             {prefix}{request.get_host()}/register?email={email}&code={code}
             """
-            secret_file = pathlib.Path(os.path.join(BASE_DIR, f"web/{url}"))
-            sender_host_password = json.loads(secret_file.read_text())
             em =EmailMessage()
             em["From"] = sender
             em["To"] = email
-            em["Subject"] = subject
+            em["Subject"] = "Bestoon"
             em.set_content(body)
             ssl_context = ssl.create_default_context()
             with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl_context) as server:
-                server.login(sender, sender_host_password)
+                server.login(sender, sender_password)
                 server.sendmail(sender, email, em.as_string())
             PasswordResetCodes.objects.create(email = email, date = now(), code = code, user_name = username, password= password)
 
@@ -239,8 +240,10 @@ def change_email(request):
                 return render(request, "web/change_email.html", context=context)
             else:
                 code = random_str(30)
-                sender = "bestoon2023@gmail.com"
-                password = json.loads(pathlib.Path(os.path.join(BASE_DIR, f"web/{url}")).read_text())
+                secret_file = pathlib.Path(os.path.join(BASE_DIR, f"web/{url}"))
+                sender_info = json.loads(secret_file.read_text())
+                sender = sender_info.get("sender_email")
+                sender_password = sender_info.get("password")
                 prefix = "https://" if request.is_secure() else "http://"
                 body = f"""
                 click on this link to change your email to this email:
@@ -253,7 +256,7 @@ def change_email(request):
                 message.set_content(body)
                 ssl_context = ssl.create_default_context()
                 with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl_context) as server:
-                    server.login(sender, password)
+                    server.login(sender, sender_password)
                     server.sendmail(sender, new_email, message.as_string())
                 PasswordResetCodes.objects.create(code=code, user_name=this_user.username, password="",\
                                                   date=now(), email=new_email)
