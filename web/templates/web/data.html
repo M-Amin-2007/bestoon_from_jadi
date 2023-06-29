@@ -14,6 +14,23 @@
             </thead>
             <tbody>
             {% for num, data in datas %}
+                {% if data.edit_mod %}
+                <tr>
+                <form action="{% url "web:edit_method" data.id title %}" method="post">
+                    <th class="text-center">{{ num | add:1}}</th>
+                    <td class="text-center">
+                        <input type="text" class="form-control" value="{{ data.text }}" name="text" id="id_text">
+                    </td>
+                    <td class="text-center">
+                        <input type="number" class="form-control" value="{{ data.amount }}" name="amount" id="id_amount">
+                    </td>
+                    <td class="text-center">
+                        <input type="datetime-local" class="form-control" value="{{ data.date }}" name="date" id="id_text">
+                    </td>
+                    <td class="text-center"><input class="btn btn-info" type="submit" value="OK"></td>
+                </form>
+                </tr>
+                {% else %}
                 <tr>
                     <th class="text-center">{{ num | add:1}}</th>
                     <td class="text-center">{{ data.text }}</td>
@@ -21,8 +38,13 @@
                     <td class="text-center">{{ data.date }}</td>
                     <td class="text-center"><form action="{% url "web:delete_method" data.id title %}" method="post">
                         <input type="submit" class="btn btn-danger" value="delete">
+                    </form>
+                        <form action="{% url "web:edit_method" data.id title %}" method="post">
+                        <input type="submit" class="btn btn-warning" value="edit">
                     </form></td>
                 </tr>
+
+                {% endif %}
             {% endfor %}
             </tbody>
         </table>

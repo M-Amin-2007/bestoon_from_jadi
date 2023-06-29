@@ -12,12 +12,14 @@ from .models import *
 import datetime
 from django.templatetags.static import static
 
-# TODO: add csrf tokens, add js validation to form before submit, add multiple delete for tables
-# TODO: add edit button to tables
+# TODO: add csrf tokens, add js validation to form before submit
+### TODO: add multiple delete for tables
 # TODO: move register button under sign in form, change name of "register" to "sign up"
 # TODO: add suggestions part, make navbar constant, unable user to login when user is authenticated
 # TODO: change Home page figure when user login, correct login page title
 # TODO: change paragraphs and expressions, move user account (making, changing, login) parts to another app
+# TODO: make exel files readable, add statistics part
+# TODO: super users shouldn't be able to use normal panels.
 
 url = static("web/secret.json")
 now = datetime.datetime.now
@@ -28,6 +30,11 @@ def random_str(n):
     for _ in range(n):
         random_string += random.choice(characters)
     return random_string
+
+def edit_mod_maker(db_obj):
+    """DB"""
+    db_obj.edit_mod = False
+    return db_obj
 
 
 
@@ -101,7 +108,7 @@ def login_view(request):
     """login page view."""
     if request.POST:
         username = request.POST.get("username").lower().title()
-        if not User.objects.filter(username=username):
+        if not User.objects.filter(username=username) or User.objects.get(username=username).is_superuser:
             context = {"message": "this user isn't exist."}
             return render(request, "web/login.html", context=context)
         else:
@@ -274,3 +281,31 @@ def logout_view(request):
     else:
         logout(request)
         return redirect(reverse("web:user"))
+
+@csrf_exempt
+def edit_item(request, pk, db):
+    """edit table methods"""
+    if request.method == "GET":
+        raise Http404("not found!")
+    else:
+        if "text" in request.POST:
+            text = request.POST.get("text")
+            amount = request.POST.get("amount")
+            date = request.POST.get("date")
+            if db == "income":
+                income_obj = Income.objects.get(pk=pk)
+                income_obj.edit_mod = False
+                income_obj.text = text
+                income_obj.amount = amount
+                income_obj.date = date if date else income_obj.date
+                income_obj.save()
+            else:
+                pass
+        else:
+            if db == "income":
+                income_obj = Income.objects.get(pk=pk)
+                income_obj.edit_mod = True
+                income_obj.save()
+            else:
+                pass
+        return redirect(reverse("web:income"))
