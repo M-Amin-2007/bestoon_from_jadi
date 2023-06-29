@@ -20,6 +20,7 @@ from django.templatetags.static import static
 # TODO: change paragraphs and expressions, move user account (making, changing, login) parts to another app
 # TODO: make exel files readable, add statistics part
 # TODO: super users shouldn't be able to use normal panels.
+# TODO: delete account ability for user
 
 url = static("web/secret.json")
 now = datetime.datetime.now
@@ -293,19 +294,27 @@ def edit_item(request, pk, db):
             amount = request.POST.get("amount")
             date = request.POST.get("date")
             if db == "income":
-                income_obj = Income.objects.get(pk=pk)
-                income_obj.edit_mod = False
-                income_obj.text = text
-                income_obj.amount = amount
-                income_obj.date = date if date else income_obj.date
-                income_obj.save()
+                data_object = Income.objects.get(pk=pk)
+                data_object.edit_mod = False
+                data_object.text = text
+                data_object.amount = amount
+                data_object.date = date if date else data_object.date
+                data_object.save()
             else:
-                pass
+                data_object = Expense.objects.get(pk=pk)
+                data_object.edit_mod = False
+                data_object.text = text
+                data_object.amount = amount
+                data_object.date = date if date else data_object.date
+                data_object.save()
         else:
             if db == "income":
-                income_obj = Income.objects.get(pk=pk)
-                income_obj.edit_mod = True
-                income_obj.save()
+                data_object = Income.objects.get(pk=pk)
+                data_object.edit_mod = True
+                data_object.save()
             else:
-                pass
-        return redirect(reverse("web:income"))
+                data_object = Expense.objects.get(pk=pk)
+                data_object.edit_mod = True
+                data_object.save()
+
+        return redirect(reverse(f"web:{db}"))
