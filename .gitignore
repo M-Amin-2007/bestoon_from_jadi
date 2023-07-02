@@ -5,4 +5,4 @@
 __pycache__/
 local_settings.py
 
-/web/static/web/secret.json
+/account_manager/static/account_manager/secret.json

@@ -5,14 +5,14 @@
 {% block content %}
     <div class="container shadow p-3 mb-5 bg-white rounded">
     {% if multi_delete_mod %}
-            <form action="{% url "web:multi_delete" %}" method="post">{% endif %}
+            <form action="{% url "web:multi_delete" title %}" method="post">{% endif %}
         <table class="table">
             <thead class="table-info">
                 <th scope="col" class="text-center">#</th>
                 <th scope="col" class="text-center">text</th>
                 <th scope="col" class="text-center">amount(tooman)</th>
                 <th scope="col" class="text-center">date</th>
-                <th scope="col" class="text-center"><form action="{% url "web:multi_delete" %}" method="post">
+                <th scope="col" class="text-center"><form action="{% url "web:multi_delete" title %}" method="post">
                         <input type="submit" class="btn btn-danger" value="multi delete">
                     </form></th>
             </thead>
