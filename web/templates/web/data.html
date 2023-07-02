@@ -4,35 +4,47 @@
 {% endblock %}
 {% block content %}
     <div class="container shadow p-3 mb-5 bg-white rounded">
+    {% if multi_delete_mod %}
+            <form action="{% url "web:multi_delete" %}" method="post">{% endif %}
         <table class="table">
             <thead class="table-info">
                 <th scope="col" class="text-center">#</th>
                 <th scope="col" class="text-center">text</th>
                 <th scope="col" class="text-center">amount(tooman)</th>
                 <th scope="col" class="text-center">date</th>
-                <th scope="col" class="text-center"></th>
+                <th scope="col" class="text-center"><form action="{% url "web:multi_delete" %}" method="post">
+                        <input type="submit" class="btn btn-danger" value="multi delete">
+                    </form></th>
             </thead>
             <tbody>
             {% for num, data in datas %}
                 {% if data.edit_mod %}
                 <tr>
                 <form action="{% url "web:edit_method" data.id title %}" method="post">
-                    <th class="text-center">{{ num | add:1}}</th>
+                    <th class="text-center">
+                        {{ num | add:1}}
+                    </th>
                     <td class="text-center">
-                        <input type="text" class="form-control" value="{{ data.text }}" name="text" id="id_text">
+                        <input type="text" class="form-control" value="{{ data.text }}" name="text" id="id_text_{{ data.id }}">
                     </td>
                     <td class="text-center">
-                        <input type="number" class="form-control" value="{{ data.amount }}" name="amount" id="id_amount">
+                        <input type="number" class="form-control" value="{{ data.amount }}" name="amount" id="id_amount_{{ data.id }}">
                     </td>
                     <td class="text-center">
-                        <input type="datetime-local" class="form-control" value="{{ data.date }}" name="date" id="id_text">
+                        <input type="datetime-local" class="form-control" value="{{ data.date }}" name="date" id="id_text_{{ data.id }}">
                     </td>
                     <td class="text-center"><input class="btn btn-info" type="submit" value="OK"></td>
                 </form>
                 </tr>
                 {% else %}
                 <tr>
-                    <th class="text-center">{{ num | add:1}}</th>
+                    <th class="text-center">
+                        {% if multi_delete_mod %}
+                            <input type="checkbox" class="" name="choice" value="{{ data.id }}" id="id_box_{{ data.id }}">
+                        {% else %}
+                            {{ num | add:1}}
+                        {% endif %}
+                    </th>
                     <td class="text-center">{{ data.text }}</td>
                     <td class="text-center">{{ data.amount }}</td>
                     <td class="text-center">{{ data.date }}</td>
@@ -48,6 +60,13 @@
             {% endfor %}
             </tbody>
         </table>
+                {% if multi_delete_mod %}
+                    <input class="btn btn-info" type="submit" value="delete">
+            </form>
+            <form action="{% url "web:income" %}" method="get"><input class="btn btn-danger" value="cancel" type="submit"></form>
+
+                {% endif %}
+
     </div><div class="container shadow p-3 mb-5 bg-white rounded">
         <h3>submit new {{ title }} here.</h3>
         <form method="post">

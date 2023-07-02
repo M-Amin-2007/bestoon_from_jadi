@@ -13,7 +13,6 @@ import datetime
 from django.templatetags.static import static
 
 # TODO: add csrf tokens, add js validation to form before submit
-### TODO: add multiple delete for tables
 # TODO: move register button under sign in form, change name of "register" to "sign up"
 # TODO: add suggestions part, make navbar constant, unable user to login when user is authenticated
 # TODO: change Home page figure when user login, correct login page title
@@ -318,3 +317,17 @@ def edit_item(request, pk, db):
                 data_object.save()
 
         return redirect(reverse(f"web:{db}"))
+
+@csrf_exempt
+def multi_delete(request):
+    """multi delete"""
+    if request.POST:
+        items = dict(request.POST).get("choice")
+        for pk in items:
+            item = Income.objects.get(pk=int(pk))
+            item.delete()
+        return redirect(reverse("web:income"))
+    else:
+        data_list = list(Income.objects.filter(this_user=request.user))
+        context = {"datas": enumerate(data_list), "title": "income", "multi_delete_mod": True}
+        return render(request, "web/data.html", context=context)
