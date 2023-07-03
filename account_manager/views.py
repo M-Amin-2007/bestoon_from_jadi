@@ -223,3 +223,14 @@ def logout_view(request):
     else:
         logout(request)
         return redirect(reverse("account_manager:user"))
+
+
+@csrf_exempt
+def delete_account_view(request):
+    """delete_account_view"""
+    if request.method == "GET":
+        raise Http404("not found!")
+    else:
+        user = request.user
+        user.delete()
+        return redirect(reverse("account_manager:login"))

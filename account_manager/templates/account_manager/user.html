@@ -21,6 +21,10 @@
     <form action="{% url "account_manager:logout_view" %}" method="post">
                         <input type="submit" class="btn btn-info" value="logout">
     </form>
+    </div><div class="mb-3">
+    <form action="{% url "account_manager:delete_account" %}" method="post">
+                        <input type="submit" class="btn btn-info" value="delete account">
+    </form>
     </div>
     </div>
 {% endblock %}

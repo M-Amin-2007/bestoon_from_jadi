@@ -13,15 +13,9 @@ import datetime
 # TODO: change paragraphs and expressions
 # TODO: make exel files readable, add statistics part
 # TODO: super users shouldn't be able to use normal panels.
-# TODO: delete account ability for user
+### TODO: delete account ability for user
 
 now = datetime.datetime.now
-def edit_mod_maker(db_obj):
-    """DB"""
-    db_obj.edit_mod = False
-    return db_obj
-
-
 def home(request):
     """manage home request."""
     return render(request, "web/home.html")
