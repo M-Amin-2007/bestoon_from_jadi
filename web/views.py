@@ -7,13 +7,12 @@ from .models import *
 import datetime
 
 # TODO: add csrf tokens, add js validation to form before submit
-# TODO: move register button under sign in form, change name of "register" to "sign up"
-# TODO: add suggestions part, make navbar constant, unable user to login when user is authenticated
-# TODO: change Home page figure when user login, correct login page title
+# TODO: forgot password and username.buttons
+# TODO: add suggestions part, unable user to login when user is authenticated
+# TODO: change Home page figure when user login,
 # TODO: change paragraphs and expressions
 # TODO: make exel files readable, add statistics part
 # TODO: super users shouldn't be able to use normal panels.
-### TODO: delete account ability for user
 
 now = datetime.datetime.now
 def home(request):
@@ -31,9 +30,11 @@ def income(request):
             date = request.POST.get("date")
             if not date: date = now()
             Income.objects.create(text=text, amount=amount, date=date, this_user=request.user)
-        data_list = list(Income.objects.filter(this_user=request.user))
-        context = {"datas":enumerate(data_list), "title":"income"}
-        return render(request, "web/data.html", context=context)
+            return redirect(reverse("web:income"))
+        else:
+            data_list = list(Income.objects.filter(this_user=request.user))
+            context = {"datas":enumerate(data_list), "title":"income"}
+            return render(request, "web/data.html", context=context)
     else:
         return redirect(reverse("account_manager:login"))
 
