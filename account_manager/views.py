@@ -1,5 +1,5 @@
 """manage account views."""
-import datetime, string, random, pathlib, os, json, ssl, smtplib
+import datetime, string, random, pathlib, os, json, ssl, smtplib, re, pytz
 from email.message import EmailMessage
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.hashers import make_password
@@ -12,6 +12,7 @@ from account_manager.models import AccountActivatingCodes
 from bestoon.settings import BASE_DIR
 
 now = datetime.datetime.now
+FORGOT_LINK_TIME = 30
 def random_str(n):
     """returns a random str that not exit before this"""
     characters = string.ascii_lowercase + string.ascii_uppercase + string.digits
@@ -29,10 +30,10 @@ def register(request):
         password = make_password(request.POST.get("password"))
         username = request.POST.get("username").lower().title()
         if User.objects.filter(email=email).exists():
-            page_context = {"message": "this email was used before this.", "status":True}
+            page_context = {"message": "this email was used before this."}
             return render(request, "account_manager/register.html", context=page_context)
         elif User.objects.filter(username=username).exists():
-            page_context = {"message": "this username was used before this.", "status":True}
+            page_context = {"message": "this username was used before this."}
             return render(request, "account_manager/register.html", context=page_context)
         else:
             code = random_str(28)
@@ -68,10 +69,10 @@ def register(request):
             AccountActivatingCodes.objects.filter(code=code).delete()
             return redirect(reverse("account_manager:user"))
         else:
-            context = {"message": "this activating code is not valid!", "status":True}
+            context = {"message": "this activating code is not valid!"}
             return render(request, "account_manager/register.html", context=context)
     else:
-        context = {"message":"", "status":True}
+        context = {"message":""}
         return render(request, "account_manager/register.html", context=context)
 
 
@@ -234,3 +235,79 @@ def delete_account_view(request):
         user = request.user
         user.delete()
         return redirect(reverse("account_manager:login"))
+
+
+@csrf_exempt
+def forgot_password_view(request):
+    """forgot pass word view"""
+    if "password1" in request.POST.keys():
+        this_user = request.user
+        new_pass_repeat = request.POST.get("password2")
+        new_pass = request.POST.get("password1")
+        if new_pass != new_pass_repeat:
+            context = {"message": "your repeat field isn't correct!"}
+            return render(request, "account_manager/change_password.html", context=context)
+        else:
+            this_user.set_password(new_pass)
+            this_user.save()
+            login(request, this_user)
+            return redirect(reverse("account_manager:user"))
+    elif request.POST:
+        username = request.POST.get("username").lower().title()
+        email = request.POST.get("email").lower()
+        try:
+            this_user = User.objects.get(username=username)
+        except AccountActivatingCodes.DoesNotExist:
+            context = {"message": "username not found!"}
+            return render(request, "account_manager/forgot_password.html", context=context)
+        else:
+            if re.sub(r"\s\w+@", "@", this_user.email) == email:
+                code = random_str(28)
+                # send mail
+                secret_file = pathlib.Path(
+                    os.path.join(BASE_DIR, f"account_manager/static/account_manager/secret.json"))
+                sender_info = json.loads(secret_file.read_text())
+                sender = sender_info.get("sender_email")
+                sender_password = sender_info.get("password")
+                prefix = "https://" if request.is_secure() else "http://"
+                body = f"""
+                please click link to activate your account:
+                {prefix}{request.get_host()}/account/forgot_password/?email={email}&code={code}&username={username}
+                this activating code is valid for {FORGOT_LINK_TIME} minutes
+                """
+                em = EmailMessage()
+                em["From"] = sender
+                em["To"] = email
+                em["Subject"] = "Bestoon forgot password"
+                em.set_content(body)
+                ssl_context = ssl.create_default_context()
+                with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl_context) as server:
+                    server.login(sender, sender_password)
+                    server.sendmail(sender, email, em.as_string())
+                AccountActivatingCodes.objects.create(email=email, date=now(), code=code, user_name=username,
+                                                      password="")
+                return render(request, "account_manager/email_send.html")
+            else:
+                context = {"message": "this email isn't for this user."}
+                return render(request, "account_manager/forgot_password.html", context=context)
+    elif "code" in request.GET.keys():
+        username = request.GET.get("username")
+        email = request.GET.get("email")
+        code = request.GET.get("code")
+        try: temp_code = AccountActivatingCodes.objects.get(user_name=username, code=code, email=email)
+        except AccountActivatingCodes.DoesNotExist:
+            context = {"message": "forgot password code is not valid. create new one with this form!"}
+            return render(request, "account_manager/forgot_password.html", context=context)
+        else:
+            time_difference = pytz.utc.localize(now())-temp_code.date
+            if time_difference.seconds > FORGOT_LINK_TIME * 60:
+                context = {"message": "forgot password code time is over. create new one with this form!"}
+                return render(request, "account_manager/forgot_password.html", context=context)
+            else:
+                this_user = User.objects.get(username=username)
+                login(request, this_user)
+                context={"change_password":True}
+                return render(request, "account_manager/forgot_password.html", context=context)
+        return redirect(reverse("web:home"))
+    else:
+        return render(request, "account_manager/forgot_password.html")

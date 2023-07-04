@@ -1,4 +1,4 @@
-"""manage urls sended to this app"""
+"""manage urls send to this app"""
 from django.urls import path
 from . import views
 
@@ -13,4 +13,5 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("delete_account/", views.delete_account_view, name="delete_account"),
     path("user/", views.user_view, name="user"),
+    path("forgot_password/", views.forgot_password_view, name="forgot_password"),
 ]

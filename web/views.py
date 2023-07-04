@@ -7,7 +7,6 @@ from .models import *
 import datetime
 
 # TODO: add csrf tokens, add js validation to form before submit
-# TODO: forgot password and username.buttons
 # TODO: add suggestions part, unable user to login when user is authenticated
 # TODO: change Home page figure when user login,
 # TODO: change paragraphs and expressions

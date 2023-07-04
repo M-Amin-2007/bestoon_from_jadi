@@ -5,7 +5,6 @@
 {% block content %}
     <div class="container">
         <h1>Welcome to Bestoon!</h1>
-    {% if status %}
         <p>please Enter your information and press send verify email</p>
             <form method="post">
                 <div class="mb-3 form-floating">
@@ -23,9 +22,8 @@
                 <p style="color : rgba(255, 0, 0, 0.7)">{{ message }}</p>
                 <input type="submit" value="verify" class="btn btn-primary">
             </form>
-    {% else %}
-        <p>please Enter your information and press send verify email</p>
-            <p style="color : rgba(255, 0, 0, 0.7)">{{ message }}</p>
-    {% endif %}
+        <div style="margin-top: 10px">
+            <a href="{% url "account_manager:login" %}">already have an account.</a></div>
+
     </div>
 {% endblock %}

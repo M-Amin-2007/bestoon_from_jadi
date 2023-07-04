@@ -18,5 +18,9 @@
                 <p style="color : rgba(255, 0, 0, 0.7)">{{ message }}</p>
                 <input type="submit" value="login" class="btn btn-primary">
             </form>
+        <div style="margin-top: 10px">
+            <a href="{% url "account_manager:register" %}">create a new account</a></div>
+        <div style="margin-top: 10px">
+            <a href="{% url "account_manager:forgot_password" %}">forgot password</a></div>
     </div>
 {% endblock %}
