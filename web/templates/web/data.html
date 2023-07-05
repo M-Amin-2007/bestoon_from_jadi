@@ -3,12 +3,35 @@
 <title>{{ title }}</title>
 {% endblock %}
 {% block content %}
+        <div class="container shadow p-3 mb-5 bg-white rounded">
+        <h3>submit new {{ title | title }} here.</h3>
+        <form method="post">
+            <div class="mb-3 form-floating">
+                <input type="text" id="id_text" name="text" class="form-control form-control-sm" placeholder="text" required>
+                <label for="id_text">text</label>
+            </div>
+            <div class="mb-3 form-floating">
+                <input type="number" id="id_amount" name="amount" class="form-control" placeholder="amount" required>
+                <label for="id_amount">amount</label>
+            </div>
+            <div class="mb-3 form-floating">
+                <input type="datetime-local" id="id_date" name="date" class="form-control" placeholder="amount" aria-describedby="help_message">
+                <label for="id_date">date & time</label>
+                <small id="help_message" style="color: rgba(255, 0, 0, 0.6)">if you don't fill out this field. it automatically will be now.</small>
+            </div>
+            <input type="submit" value="submit" class="btn btn-primary">
+        </form>
+    </div>
+
     <div class="container shadow p-3 mb-5 bg-white rounded">
     {% if multi_delete_mod %}
             <form action="{% url "web:multi_delete" title %}" method="post">{% endif %}
         <table class="table">
             <thead class="table-info">
-                <th scope="col" class="text-center">#</th>
+                <th scope="col" class="text-center">{% if multi_delete_mod %}
+                    <input type="checkbox" onclick="selectAll(this)">
+                {% else %}
+                {% endif %}</th>
                 <th scope="col" class="text-center">text</th>
                 <th scope="col" class="text-center">amount(tooman)</th>
                 <th scope="col" class="text-center">date</th>
@@ -66,24 +89,13 @@
             <form action="{% url "web:income" %}" method="get"><input class="btn btn-danger" value="cancel" type="submit"></form>
 
                 {% endif %}
-
-    </div><div class="container shadow p-3 mb-5 bg-white rounded">
-        <h3>submit new {{ title }} here.</h3>
-        <form method="post">
-            <div class="mb-3 form-floating">
-                <input type="text" id="id_text" name="text" class="form-control" placeholder="text" required>
-                <label for="id_text">text</label>
-            </div>
-            <div class="mb-3 form-floating">
-                <input type="number" id="id_amount" name="amount" class="form-control" placeholder="amount" required>
-                <label for="id_amount">amount</label>
-            </div>
-            <div class="mb-3 form-floating">
-                <input type="datetime-local" id="id_date" name="date" class="form-control" placeholder="amount" aria-describedby="help_message">
-                <label for="id_date">date & time</label>
-                <small id="help_message" style="color: rgba(255, 0, 0, 0.6)">if you don't fill out this field. it automatically will be now.</small>
-            </div>
-            <input type="submit" value="submit" class="btn btn-primary">
-        </form>
     </div>
+    <script>
+    function selectAll(source) {
+        const checkboxes = document.getElementsByName("choice");
+        for(let checkbox of checkboxes){
+            checkbox.checked = source.checked;
+        }
+    }
+    </script>
 {% endblock %}

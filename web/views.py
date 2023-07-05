@@ -7,22 +7,21 @@ from .models import *
 import datetime
 
 # TODO: add csrf tokens, add js validation to form before submit
-# TODO: add suggestions part, unable user to login when user is authenticated
-# TODO: change Home page figure when user login,
+# TODO: add suggestions part
 # TODO: change paragraphs and expressions
 # TODO: make exel files readable, add statistics part
-# TODO: super users shouldn't be able to use normal panels.
 
 now = datetime.datetime.now
 def home(request):
     """manage home request."""
-    return render(request, "web/home.html")
+    context = {"login_status":request.user.is_authenticated and not request.user.is_superuser}
+    return render(request, "web/home.html", context=context)
 
 
 @csrf_exempt
 def income(request):
     """incomes"""
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and not request.user.is_superuser:
         if request.method == "POST":
             text = request.POST.get("text")
             amount = request.POST.get("amount")
@@ -41,7 +40,7 @@ def income(request):
 @csrf_exempt
 def expense(request):
     """expenses"""
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and not request.user.is_superuser:
         if request.method == "POST":
             text = request.POST.get("text")
             amount = request.POST.get("amount")

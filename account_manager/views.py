@@ -25,7 +25,9 @@ def random_str(n):
 @csrf_exempt
 def register(request):
     """register user."""
-    if request.POST:
+    if request.user.is_authenticated and not request.user.is_superuser:
+        return redirect(reverse("account_manager:user"))
+    elif request.POST:
         email = request.POST.get("email").lower()
         password = make_password(request.POST.get("password"))
         username = request.POST.get("username").lower().title()
@@ -78,7 +80,7 @@ def register(request):
 
 def user_view(request):
     """user panel view."""
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and not request.user.is_superuser:
         return render(request, "account_manager/user.html")
     else:
         return redirect(reverse("account_manager:login"))
@@ -87,7 +89,9 @@ def user_view(request):
 @csrf_exempt
 def login_view(request):
     """login page view."""
-    if request.POST:
+    if request.user.is_authenticated and not request.user.is_superuser:
+        return redirect(reverse("account_manager:user"))
+    elif request.POST:
         username = request.POST.get("username").lower().title()
         if not User.objects.filter(username=username) or User.objects.get(username=username).is_superuser:
             context = {"message": "this user isn't exist."}
@@ -100,7 +104,6 @@ def login_view(request):
             else:
                 context = {"message": "password is incorrect."}
                 return render(request, "account_manager/login.html", context=context)
-
     else:
         context = {"message":""}
         return render(request, "account_manager/login.html", context=context)
@@ -111,7 +114,7 @@ def change_password(request):
     """change password"""
     if request.method == "GET":
         raise Http404("not found!")
-    elif request.user.is_authenticated:
+    elif request.user.is_authenticated and not request.user.is_superuser:
         if "pass1" in request.POST:
             pass1 = request.POST.get("pass1")
             new_pass_repeat = request.POST.get("pass2")
@@ -140,7 +143,7 @@ def change_username(request):
     """change password"""
     if request.method == "GET":
         raise Http404("not found!")
-    elif request.user.is_authenticated:
+    elif request.user.is_authenticated and not request.user.is_superuser:
         if "new_username" in request.POST:
             new_username = request.POST.get("new_username").lower().title()
             this_user = request.user
@@ -162,7 +165,7 @@ def change_username(request):
 @csrf_exempt
 def change_email(request):
     """change password"""
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and not request.user.is_superuser:
         if request.method == "GET":
             if "code" in request.GET:
                 code = request.GET.get("code")
