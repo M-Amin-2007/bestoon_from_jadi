@@ -5,11 +5,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import Http404
 from .models import *
 import datetime
-
+import pathlib
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 # TODO: add csrf tokens, add js validation to form before submit
 # TODO: add suggestions part
 # TODO: change paragraphs and expressions
-# TODO: make exel files readable, add statistics part
+### TODO: make exel files readable, add statistics part
 
 now = datetime.datetime.now
 def home(request):
@@ -27,10 +29,10 @@ def income(request):
             amount = request.POST.get("amount")
             date = request.POST.get("date")
             if not date: date = now()
-            Income.objects.create(text=text, amount=amount, date=date, this_user=request.user)
+            Income.objects.create(text=text, amount=amount, date=date, this_user="request.user")
             return redirect(reverse("web:income"))
         else:
-            data_list = list(Income.objects.filter(this_user=request.user))
+            data_list = list(Income.objects.filter(this_user="request.user"))
             context = {"datas":enumerate(data_list), "title":"income"}
             return render(request, "web/data.html", context=context)
     else:
@@ -129,3 +131,14 @@ def multi_delete(request, db):
             return render(request, "web/data.html", context=context)
     else:
         return Http404("not Found!")
+
+@csrf_exempt
+def test(request):
+    if request.method == "POST":
+        print(request.POST)
+        print(request.FILES)
+        file = request.FILES.get("my_file")
+        a=str(file)
+        path = default_storage.save(f"./web/{a}", ContentFile(file.read()))
+        print(path)
+    return render(request, "web/test.html")

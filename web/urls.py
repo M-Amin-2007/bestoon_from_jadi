@@ -11,4 +11,5 @@ urlpatterns = [
     path("edit/<pk>/<db>/", views.edit_item, name="edit_method"),
     path("multi_delete/<db>/", views.multi_delete, name="multi_delete"),
     path("", views.home, name="home"),
+    path("test", views.test, name="test"),
 ]
