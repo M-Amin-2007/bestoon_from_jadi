@@ -1,18 +1,19 @@
 """create app views"""
+import re, datetime, openpyxl, os
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import Http404
 from .models import *
-import datetime
-import pathlib
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from bestoon.settings import BASE_DIR
+
 # TODO: add csrf tokens, add js validation to form before submit
 # TODO: add suggestions part
 # TODO: change paragraphs and expressions
-### TODO: make exel files readable, add statistics part
-
+### TODO: add statistics part
+# TODO: auto scroll to table or new data with button with script
 now = datetime.datetime.now
 def home(request):
     """manage home request."""
@@ -24,15 +25,65 @@ def home(request):
 def income(request):
     """incomes"""
     if request.user.is_authenticated and not request.user.is_superuser:
-        if request.method == "POST":
+        if request.method == "POST" and "text" in request.POST:
             text = request.POST.get("text")
             amount = request.POST.get("amount")
             date = request.POST.get("date")
             if not date: date = now()
-            Income.objects.create(text=text, amount=amount, date=date, this_user="request.user")
+            Income.objects.create(text=text, amount=amount, date=date, this_user=request.user)
             return redirect(reverse("web:income"))
+        elif request.method == "POST" and "file" in request.FILES:
+            in_memory_file = request.FILES.get("file")
+            if re.search(r"\.\w+$", str(in_memory_file)).group(0) == ".xlsx":
+                file_storage = default_storage.save(f"./web/excel_files/{str(in_memory_file)}", ContentFile(in_memory_file.read()))
+                path = os.path.join(BASE_DIR, file_storage)
+                file = openpyxl.load_workbook(path)
+                sheet = file.active
+                titles_pos = dict()
+                for i in range(1, sheet.max_column + 1):
+                    cell_value = sheet.cell(row=1, column=i).value
+                    if cell_value == "amount":
+                        titles_pos["amount"] = i
+                    elif cell_value == "text":
+                        titles_pos["text"] = i
+                    elif cell_value == "date":
+                        titles_pos["date"] = i
+                if not ("amount" in titles_pos.keys() and "text" in titles_pos.keys()):
+                    data_list = list(Income.objects.filter(this_user=request.user))
+                    context = {"datas": enumerate(data_list), "title": "income",
+                               "message": "file haven't requirement titles in first row. (title, amount)"}
+                    return render(request, "web/data.html", context=context)
+                row_failed = list()
+                for i in range(2, sheet.max_row + 1):
+                    new_income_attr = dict()
+                    for title, pos in titles_pos.items():
+                        new_income_attr.update({title : sheet.cell(row=i, column=pos).value})
+                    if not any(new_income_attr.values()): continue
+                    text = new_income_attr.get("text")
+                    date = new_income_attr.get("date") if type(new_income_attr.get("date")) == datetime.datetime else now()
+                    try:amount = int(new_income_attr.get("amount"))
+                    except ValueError:
+                        row_failed.extend(["amount must be number!", i])
+                        continue
+                    except TypeError:
+                        row_failed.extend(["amount field must have a value!", i])
+                        continue
+                    else:
+                        if text:
+                            Income.objects.create(text=text, amount=amount, date=date, this_user=request.user, edit_mod=False)
+                        else:
+                            row_failed.extend(["text field must have a value!", i])
+                os.remove(path)
+                data_list = list(Income.objects.filter(this_user=request.user))
+                context = {"datas": enumerate(data_list), "title": "income",
+                           "message": f"failed rows: {row_failed}"}
+                return render(request, "web/data.html", context=context)
+            else:
+                data_list = list(Income.objects.filter(this_user=request.user))
+                context = {"datas": enumerate(data_list), "title": "income", "message": "only you can upload excel files!!"}
+                return render(request, "web/data.html", context=context)
         else:
-            data_list = list(Income.objects.filter(this_user="request.user"))
+            data_list = list(Income.objects.filter(this_user=request.user))
             context = {"datas":enumerate(data_list), "title":"income"}
             return render(request, "web/data.html", context=context)
     else:
@@ -43,15 +94,67 @@ def income(request):
 def expense(request):
     """expenses"""
     if request.user.is_authenticated and not request.user.is_superuser:
-        if request.method == "POST":
+        if request.method == "POST" and "text" in request.POST:
             text = request.POST.get("text")
             amount = request.POST.get("amount")
             date = request.POST.get("date")
             if not date: date = now()
             Expense.objects.create(text=text, amount=amount, date=date, this_user=request.user)
-        data_list = Expense.objects.filter(this_user=request.user)
-        context = {"datas":enumerate(data_list), "title":"expense"}
-        return render(request, "web/data.html", context=context)
+            return redirect(reverse("web:expense"))
+        elif request.method == "POST" and "file" in request.FILES:
+            in_memory_file = request.FILES.get("file")
+            if re.search(r"\.\w+$", str(in_memory_file)).group(0) == ".xlsx":
+                file_storage = default_storage.save(f"./web/excel_files/{str(in_memory_file)}", ContentFile(in_memory_file.read()))
+                path = os.path.join(BASE_DIR, file_storage)
+                file = openpyxl.load_workbook(path)
+                sheet = file.active
+                titles_pos = dict()
+                for i in range(1, sheet.max_column + 1):
+                    cell_value = sheet.cell(row=1, column=i).value
+                    if cell_value == "amount":
+                        titles_pos["amount"] = i
+                    elif cell_value == "text":
+                        titles_pos["text"] = i
+                    elif cell_value == "date":
+                        titles_pos["date"] = i
+                if not ("amount" in titles_pos.keys() and "text" in titles_pos.keys()):
+                    data_list = list(Expense.objects.filter(this_user=request.user))
+                    context = {"datas": enumerate(data_list), "title": "expense",
+                               "message": "file haven't requirement titles in first row. (title, amount)"}
+                    return render(request, "web/data.html", context=context)
+                row_failed = list()
+                for i in range(2, sheet.max_row + 1):
+                    new_expense_attr = dict()
+                    for title, pos in titles_pos.items():
+                        new_expense_attr.update({title : sheet.cell(row=i, column=pos).value})
+                    if not any(new_expense_attr.values()): continue
+                    text = new_expense_attr.get("text")
+                    date = new_expense_attr.get("date") if type(new_expense_attr.get("date")) == datetime.datetime else now()
+                    try:amount = int(new_expense_attr.get("amount"))
+                    except ValueError:
+                        row_failed.extend(["amount must be number!", i])
+                        continue
+                    except TypeError:
+                        row_failed.extend(["amount field must have a value!", i])
+                        continue
+                    else:
+                        if text:
+                            Expense.objects.create(text=text, amount=amount, date=date, this_user=request.user, edit_mod=False)
+                        else:
+                            row_failed.extend(["text field must have a value!", i])
+                os.remove(path)
+                data_list = list(Expense.objects.filter(this_user=request.user))
+                context = {"datas": enumerate(data_list), "title": "expense",
+                           "message": f"failed rows: {row_failed}"}
+                return render(request, "web/data.html", context=context)
+            else:
+                data_list = list(Expense.objects.filter(this_user=request.user))
+                context = {"datas": enumerate(data_list), "title": "expense", "message": "only you can upload excel files!!"}
+                return render(request, "web/data.html", context=context)
+        else:
+            data_list = Expense.objects.filter(this_user=request.user)
+            context = {"datas":enumerate(data_list), "title":"expense"}
+            return render(request, "web/data.html", context=context)
     else:
         return redirect(reverse("account_manager:login"))
 
@@ -131,14 +234,3 @@ def multi_delete(request, db):
             return render(request, "web/data.html", context=context)
     else:
         return Http404("not Found!")
-
-@csrf_exempt
-def test(request):
-    if request.method == "POST":
-        print(request.POST)
-        print(request.FILES)
-        file = request.FILES.get("my_file")
-        a=str(file)
-        path = default_storage.save(f"./web/{a}", ContentFile(file.read()))
-        print(path)
-    return render(request, "web/test.html")

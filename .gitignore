@@ -6,3 +6,4 @@ __pycache__/
 local_settings.py
 venv/
 /account_manager/static/account_manager/secret.json
+/web/excel_files/*.xlsx
