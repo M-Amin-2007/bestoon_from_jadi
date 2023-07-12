@@ -12,8 +12,7 @@ from bestoon.settings import BASE_DIR
 # TODO: add csrf tokens, add js validation to form before submit
 # TODO: add suggestions part
 # TODO: change paragraphs and expressions
-### TODO: add statistics part
-# TODO: auto scroll to table or new data with button with script
+# TODO: add statistics part
 now = datetime.datetime.now
 def home(request):
     """manage home request."""
@@ -31,7 +30,10 @@ def income(request):
             date = request.POST.get("date")
             if not date: date = now()
             Income.objects.create(text=text, amount=amount, date=date, this_user=request.user)
-            return redirect(reverse("web:income"))
+            data_list = list(Income.objects.filter(this_user=request.user))
+            context = {"datas": enumerate(data_list), "title":"income", "scroll_tag":"main_table",
+                       "scroll_status":"down"}
+            return render(request, "web/data.html", context=context)
         elif request.method == "POST" and "file" in request.FILES:
             in_memory_file = request.FILES.get("file")
             if re.search(r"\.\w+$", str(in_memory_file)).group(0) == ".xlsx":
@@ -49,9 +51,11 @@ def income(request):
                     elif cell_value == "date":
                         titles_pos["date"] = i
                 if not ("amount" in titles_pos.keys() and "text" in titles_pos.keys()):
+                    os.remove(path)
                     data_list = list(Income.objects.filter(this_user=request.user))
                     context = {"datas": enumerate(data_list), "title": "income",
-                               "message": "file haven't requirement titles in first row. (title, amount)"}
+                               "message": "file haven't requirement titles in first row. (title, amount)",
+                               "scroll_tag":"excel_upload", "scroll_status":"down"}
                     return render(request, "web/data.html", context=context)
                 row_failed = list()
                 for i in range(2, sheet.max_row + 1):
@@ -76,15 +80,20 @@ def income(request):
                 os.remove(path)
                 data_list = list(Income.objects.filter(this_user=request.user))
                 context = {"datas": enumerate(data_list), "title": "income",
-                           "message": f"failed rows: {row_failed}"}
+                           "message": f"failed rows: {row_failed}",
+                           "scroll_tag":"main_table", "scroll_status":"down"}
                 return render(request, "web/data.html", context=context)
             else:
                 data_list = list(Income.objects.filter(this_user=request.user))
-                context = {"datas": enumerate(data_list), "title": "income", "message": "only you can upload excel files!!"}
+                context = {"datas": enumerate(data_list), "title": "income",
+                           "message": "only you can upload excel files!!",
+                           "scroll_tag":"excel_upload", "scroll_status":"down"}
                 return render(request, "web/data.html", context=context)
         else:
             data_list = list(Income.objects.filter(this_user=request.user))
-            context = {"datas":enumerate(data_list), "title":"income"}
+            context = {"datas":enumerate(data_list), "title":"income",
+                       "scroll_tag":request.GET.get("scroll_tag"),
+                       "scroll_status":request.GET.get("scroll_status")}
             return render(request, "web/data.html", context=context)
     else:
         return redirect(reverse("account_manager:login"))
@@ -100,7 +109,10 @@ def expense(request):
             date = request.POST.get("date")
             if not date: date = now()
             Expense.objects.create(text=text, amount=amount, date=date, this_user=request.user)
-            return redirect(reverse("web:expense"))
+            data_list = list(Expense.objects.filter(this_user=request.user))
+            context = {"datas": enumerate(data_list), "title":"expense", "scroll_tag":"main_table",
+                       "scroll_status":"down"}
+            return render(request, "web/data.html", context=context)
         elif request.method == "POST" and "file" in request.FILES:
             in_memory_file = request.FILES.get("file")
             if re.search(r"\.\w+$", str(in_memory_file)).group(0) == ".xlsx":
@@ -120,7 +132,8 @@ def expense(request):
                 if not ("amount" in titles_pos.keys() and "text" in titles_pos.keys()):
                     data_list = list(Expense.objects.filter(this_user=request.user))
                     context = {"datas": enumerate(data_list), "title": "expense",
-                               "message": "file haven't requirement titles in first row. (title, amount)"}
+                               "message": "file haven't requirement titles in first row. (title, amount)",
+                               "scroll_tag": "excel_upload", "scroll_status": "down"}
                     return render(request, "web/data.html", context=context)
                 row_failed = list()
                 for i in range(2, sheet.max_row + 1):
@@ -145,15 +158,20 @@ def expense(request):
                 os.remove(path)
                 data_list = list(Expense.objects.filter(this_user=request.user))
                 context = {"datas": enumerate(data_list), "title": "expense",
-                           "message": f"failed rows: {row_failed}"}
+                           "message": f"failed rows: {row_failed}",
+                           "scroll_tag": "main_table", "scroll_status": "down"}
                 return render(request, "web/data.html", context=context)
             else:
                 data_list = list(Expense.objects.filter(this_user=request.user))
-                context = {"datas": enumerate(data_list), "title": "expense", "message": "only you can upload excel files!!"}
+                context = {"datas": enumerate(data_list), "title": "expense",
+                           "message": "only you can upload excel files!!",
+                           "scroll_tag": "excel_upload", "scroll_status": "down"}
                 return render(request, "web/data.html", context=context)
         else:
             data_list = Expense.objects.filter(this_user=request.user)
-            context = {"datas":enumerate(data_list), "title":"expense"}
+            context = {"datas":enumerate(data_list), "title":"expense",
+                       "scroll_tag": request.GET.get("scroll_tag"),
+                       "scroll_status": request.GET.get("scroll_status")}
             return render(request, "web/data.html", context=context)
     else:
         return redirect(reverse("account_manager:login"))
@@ -164,10 +182,10 @@ def delete_item(request, pk, db):
     """delete an income or expense from database."""
     if db == "income":
         Income.objects.get(pk=pk).delete()
-        return redirect(reverse("web:income"))
+        return redirect(f"{reverse(f'web:{db}')}?scroll_tag=main_table&scroll_status=top")
     elif db == "expense":
         Expense.objects.get(pk=pk).delete()
-        return redirect(reverse("web:expense"))
+        return redirect(f"{reverse(f'web:{db}')}?scroll_tag=main_table&scroll_status=top")
 
 
 @csrf_exempt
@@ -204,7 +222,7 @@ def edit_item(request, pk, db):
                 data_object.edit_mod = True
                 data_object.save()
 
-        return redirect(reverse(f"web:{db}"))
+        return redirect(f"{reverse(f'web:{db}')}?scroll_tag=id_row_{pk}&scroll_status=top")
 
 
 @csrf_exempt
@@ -216,10 +234,11 @@ def multi_delete(request, db):
             for pk in items:
                 item = Income.objects.get(pk=int(pk))
                 item.delete()
-            return redirect(reverse("web:income"))
+            return redirect(f"{reverse(f'web:{db}')}?scroll_tag=main_table&scroll_status=top")
         else:
             data_list = list(Income.objects.filter(this_user=request.user))
-            context = {"datas": enumerate(data_list), "title": "income", "multi_delete_mod": True}
+            context = {"datas": enumerate(data_list), "title": "income", "multi_delete_mod": True,
+                       "scroll_tag":"main_table", "scroll_status":"top"}
             return render(request, "web/data.html", context=context)
     if db == "expense":
         if request.POST:
@@ -227,10 +246,11 @@ def multi_delete(request, db):
             for pk in items:
                 item = Expense.objects.get(pk=int(pk))
                 item.delete()
-            return redirect(reverse("web:expense"))
+            return redirect(f"{reverse(f'web:{db}')}?scroll_tag=main_table&scroll_status=top")
         else:
             data_list = list(Expense.objects.filter(this_user=request.user))
-            context = {"datas": enumerate(data_list), "title": "expense", "multi_delete_mod": True}
+            context = {"datas": enumerate(data_list), "title": "expense", "multi_delete_mod": True,
+                       "scroll_tag": "main_table", "scroll_status": "top"}
             return render(request, "web/data.html", context=context)
     else:
         return Http404("not Found!")

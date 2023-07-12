@@ -3,7 +3,7 @@
 <title>{{ title }}</title>
 {% endblock %}
 {% block content %}
-    <div class="container shadow p-3 mb-5 bg-white rounded">
+    <div class="container shadow p-3 mb-5 bg-white rounded" id="new_data">
         <h3>submit new {{ title | title }} here</h3>
         <form method="post">
             <div class="mb-3 form-floating">
@@ -23,7 +23,7 @@
         </form>
     </div>
             <div class="container"><p style="align-content: center; color: #ff0000">or</p></div>
-    <div class="container shadow p-3 mb-5 bg-white rounded">
+    <div class="container shadow p-3 mb-5 bg-white rounded" id="excel_upload">
         <h3>import {{ title }}s from excel files</h3>
         <form method="post" enctype="multipart/form-data">
             <div class="mb-3 form-floating">
@@ -40,7 +40,7 @@
     </div>
 
 
-    <div class="container shadow p-3 mb-5 bg-white rounded">
+    <div class="container shadow p-3 mb-5 bg-white rounded" id="main_table">
     {% if multi_delete_mod %}
             <form action="{% url "web:multi_delete" title %}" method="post">{% endif %}
         <table class="table">
@@ -52,14 +52,16 @@
                 <th scope="col" class="text-center">text</th>
                 <th scope="col" class="text-center">amount(tooman)</th>
                 <th scope="col" class="text-center">date</th>
-                <th scope="col" class="text-center"><form action="{% url "web:multi_delete" title %}" method="post">
+                <th scope="col" class="text-center">{% if multi_delete_mod %}
+                    <input class="btn btn-info" type="submit" value="delete">
+                {% else %}<form action="{% url "web:multi_delete" title %}" method="post">
                         <input type="submit" class="btn btn-danger" value="multi delete">
-                    </form></th>
+                    </form>{% endif %}</th>
             </thead>
             <tbody>
             {% for num, data in datas %}
                 {% if data.edit_mod %}
-                <tr>
+                <tr id="id_row_{{ data.id }}">
                 <form action="{% url "web:edit_method" data.id title %}" method="post">
                     <th class="text-center">
                         {{ num | add:1}}
@@ -77,7 +79,7 @@
                 </form>
                 </tr>
                 {% else %}
-                <tr>
+                <tr id="id_row_{{ data.id }}">
                     <th class="text-center">
                         {% if multi_delete_mod %}
                             <input type="checkbox" class="" name="choice" value="{{ data.id }}" id="id_box_{{ data.id }}">
@@ -95,7 +97,6 @@
                         <input type="submit" class="btn btn-warning" value="edit">
                     </form></td>
                 </tr>
-
                 {% endif %}
             {% endfor %}
             </tbody>
@@ -108,12 +109,21 @@
                 {% endif %}
     </div>
 
-    <script>
+<script>
     function selectAll(source) {
         const checkboxes = document.getElementsByName("choice");
         for(let checkbox of checkboxes){
             checkbox.checked = source.checked;
         }
     }
-    </script>
+    if ("{{ scroll_tag }}" && "{{ scroll_tag }}" !== "None"){
+        const tableTop = document.querySelector("#{{ scroll_tag }}").getBoundingClientRect().top + window.pageYOffset;
+        const tableHeight = document.querySelector("#{{ scroll_tag }}").getBoundingClientRect().height;
+        const pageHeight = window.innerHeight;
+        if ("{{ scroll_status }}" === "down"){
+            window.scrollTo({top:tableTop + tableHeight - pageHeight + 5 , behavior: "smooth"});}
+        else{
+            window.scrollTo({top:tableTop -70 , behavior: "smooth"});}
+    }
+</script>
 {% endblock %}
