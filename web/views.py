@@ -1,5 +1,5 @@
 """create app views"""
-import re, datetime, openpyxl, os
+import re, datetime, openpyxl, os, json
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,7 +12,6 @@ from bestoon.settings import BASE_DIR
 # TODO: add csrf tokens, add js validation to form before submit
 # TODO: add suggestions part
 # TODO: change paragraphs and expressions
-# TODO: add statistics part
 now = datetime.datetime.now
 def home(request):
     """manage home request."""
@@ -254,3 +253,65 @@ def multi_delete(request, db):
             return render(request, "web/data.html", context=context)
     else:
         return Http404("not Found!")
+
+
+def statistics(request):
+    """statistic page view"""
+    if request.user.is_authenticated and not request.user.is_superuser:
+        # income
+        month_incomes = dict()
+        for income_obj in Income.objects.filter(this_user=request.user):
+            month = income_obj.date.month
+            if month not in month_incomes.keys():
+                month_incomes.update({month: 0})
+            month_incomes[month] += income_obj.amount
+        income_data = list(month_incomes.values())
+        income_label = list(month_incomes.keys())
+        # expense
+        month_expenses = dict()
+        for expense_obj in Expense.objects.filter(this_user=request.user):
+            month = expense_obj.date.month
+            if month not in month_expenses.keys():
+                month_expenses.update({month: 0})
+            month_expenses[month] += expense_obj.amount
+        expense_data = list(month_expenses.values())
+        expense_label = list(month_expenses.keys())
+        # label
+        label = income_label if len(income_label)>len(expense_label) else expense_label
+        for item in label:
+            if item == 1:
+                label[label.index(item)] =  'Jan'
+            elif item == 2:
+                label[label.index(item)] =  'Feb'
+            elif item == 3:
+                label[label.index(item)] =  'Mar'
+            elif item == 4:
+                label[label.index(item)] =  'Apr'
+            elif item == 5:
+                label[label.index(item)] = 'May'
+            elif item == 6:
+                label[label.index(item)] =  'Jun'
+            elif item == 7:
+                label[label.index(item)] =  'Jul'
+            elif item == 8:
+                label[label.index(item)] =  'Aug'
+            elif item == 9:
+                label[label.index(item)] =  'Sep'
+            elif item == 10:
+                label[label.index(item)] =  'Oct'
+            elif item == 11:
+                label[label.index(item)] =  'Nov'
+            elif item == 12:
+                label[label.index(item)] =  'Dec'
+        # saving money
+        saving_data = list()
+        months = month_incomes if len(month_incomes)>len(month_expenses) else month_expenses
+        for month in months.keys():
+            saving_data.append(month_incomes.get(month, 0)-month_expenses.get(month, 0))
+        context = {"expense_data":expense_data, "income_data":income_data,
+                   "saving_data":json.dumps(saving_data),
+                   "label":json.dumps(label)}
+        print(context["label"], type(context["label"]))
+        return render(request, "web/statistics.html", context = context)
+    else:
+        raise Http404("Not Found!")

@@ -104,8 +104,11 @@
                 {% if multi_delete_mod %}
                     <input class="btn btn-info" type="submit" value="delete">
             </form>
+        {% if title == "income" %}
             <form action="{% url "web:income" %}" method="get"><input class="btn btn-danger" value="cancel" type="submit"></form>
-
+        {% else %}
+            <form action="{% url "web:expense" %}" method="get"><input class="btn btn-danger" value="cancel" type="submit"></form>
+        {% endif %}
                 {% endif %}
     </div>
 

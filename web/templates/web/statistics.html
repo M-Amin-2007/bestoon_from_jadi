@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block head %}
+<title>statistics</title>
+{% endblock %}
+{% block content %}
+<div style="width: 50%; float: left">
+  <canvas id="myChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('myChart');
+  const label = JSON.parse("{{label}}".replaceAll("&quot;", '"'))
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: label,
+      datasets: [{
+        label: 'income',
+        data: {{ income_data }},
+        borderWidth: 1,
+        borderColor: '#003ab7',
+        backgroundColor: '#679aff',
+      },{
+        label: 'expense',
+        data: {{ expense_data }},
+        borderWidth: 1,
+        borderColor: '#be0000',
+        backgroundColor: '#ff5e5e',
+      },{
+        label: 'shortage/saving',
+        data: {{ saving_data }},
+        borderWidth: 1,
+        borderColor: '#59b000',
+        backgroundColor: '#acff5e',
+      }]
+    }
+  });
+
+</script>
+
+
+{% endblock %}

@@ -24,4 +24,4 @@ class Income(models.Model):
     edit_mod = models.BooleanField(default=False)
     this_user = models.ForeignKey(User, on_delete=models.CASCADE)
     def __str__(self):
-        return f"{self.amount} in {self.date} for {self.this_user}--{self.edit_mod}"
+        return f"{self.amount} in {self.date} for {self.this_user}"
