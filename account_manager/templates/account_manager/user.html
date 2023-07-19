@@ -6,23 +6,23 @@
     <div class="container shadow">
     <h1 class="mb-3">Hello {{ user.username }}</h1>
     <div class="mb-3">
-    <form action="{% url "account_manager:change_username" %}" method="post">
+    <form action="{% url "account_manager:change_username" %}" method="post">{% csrf_token %}
                         <input type="submit" class="btn btn-info" value="change username">
     </form>
     </div><div class="mb-3">
-    <form action="{% url "account_manager:change_email" %}" method="post">
+    <form action="{% url "account_manager:change_email" %}" method="post">{% csrf_token %}
                         <input type="submit" class="btn btn-info" value="change email">
     </form>
     </div><div class="mb-3">
-    <form action="{% url "account_manager:change_password" %}" method="post">
+    <form action="{% url "account_manager:change_password" %}" method="post">{% csrf_token %}
                         <input type="submit" class="btn btn-info" value="change password">
     </form>
     </div><div class="mb-3">
-    <form action="{% url "account_manager:logout_view" %}" method="post">
+    <form action="{% url "account_manager:logout_view" %}" method="post">{% csrf_token %}
                         <input type="submit" class="btn btn-info" value="logout">
     </form>
     </div><div class="mb-3">
-    <form action="{% url "account_manager:delete_account" %}" method="post">
+    <form action="{% url "account_manager:delete_account" %}" method="post">{% csrf_token %}
                         <input type="submit" class="btn btn-info" value="delete account">
     </form>
     </div>

@@ -5,6 +5,7 @@
 {% block content %}
 <div class="container">
 <form method="post">
+    {% csrf_token %}
     <div class="mb-3 form-floating">
         <input type="text" id="id_username" name="new_username" class="form-control" placeholder="username" required>
         <label for="id_username">new username</label>

@@ -5,6 +5,7 @@
 {% block content %}
 <div class="container">
 <form method="post">
+    {% csrf_token %}
     <div class="mb-3 form-floating">
         <input type="email" id="id_email" name="new_email" class="form-control" placeholder="email" required>
         <label for="id_email">email</label>

@@ -6,6 +6,7 @@
     <div class="container shadow p-3 mb-5 bg-white rounded" id="new_data">
         <h3>submit new {{ title | title }} here</h3>
         <form method="post">
+            {% csrf_token %}
             <div class="mb-3 form-floating">
                 <input type="text" id="id_text" name="text" class="form-control form-control-sm" placeholder="text" required>
                 <label for="id_text">text</label>
@@ -26,6 +27,7 @@
     <div class="container shadow p-3 mb-5 bg-white rounded" id="excel_upload">
         <h3>import {{ title }}s from excel files</h3>
         <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
             <div class="mb-3 form-floating">
                 <input type="file" id="id_file" name="file" class="form-control form-control-sm" placeholder="xlsx_file" aria-describedby="file-uploading-help" required>
                 <label for="id_xlsx_file">upload an Excel(xlsx) file</label>
@@ -42,7 +44,7 @@
 
     <div class="container shadow p-3 mb-5 bg-white rounded" id="main_table">
     {% if multi_delete_mod %}
-            <form action="{% url "web:multi_delete" title %}" method="post">{% endif %}
+            <form action="{% url "web:multi_delete" title %}" method="post">{% csrf_token %}{% endif %}
         <table class="table">
             <thead class="table-info">
                 <th scope="col" class="text-center">{% if multi_delete_mod %}
@@ -54,7 +56,7 @@
                 <th scope="col" class="text-center">date</th>
                 <th scope="col" class="text-center">{% if multi_delete_mod %}
                     <input class="btn btn-info" type="submit" value="delete">
-                {% else %}<form action="{% url "web:multi_delete" title %}" method="post">
+                {% else %}<form action="{% url "web:multi_delete" title %}" method="post">{% csrf_token %}
                         <input type="submit" class="btn btn-danger" value="multi delete">
                     </form>{% endif %}</th>
             </thead>
@@ -62,7 +64,7 @@
             {% for num, data in datas %}
                 {% if data.edit_mod %}
                 <tr id="id_row_{{ data.id }}">
-                <form action="{% url "web:edit_method" data.id title %}" method="post">
+                <form action="{% url "web:edit_method" data.id title %}" method="post">{% csrf_token %}
                     <th class="text-center">
                         {{ num | add:1}}
                     </th>
@@ -91,9 +93,10 @@
                     <td class="text-center">{{ data.amount }}</td>
                     <td class="text-center">{{ data.date }}</td>
                     <td class="text-center"><form action="{% url "web:delete_method" data.id title %}" method="post">
+                        {% csrf_token %}
                         <input type="submit" class="btn btn-danger" value="delete">
                     </form>
-                        <form action="{% url "web:edit_method" data.id title %}" method="post">
+                        <form action="{% url "web:edit_method" data.id title %}" method="post">{% csrf_token %}
                         <input type="submit" class="btn btn-warning" value="edit">
                     </form></td>
                 </tr>
@@ -105,9 +108,9 @@
                     <input class="btn btn-info" type="submit" value="delete">
             </form>
         {% if title == "income" %}
-            <form action="{% url "web:income" %}" method="get"><input class="btn btn-danger" value="cancel" type="submit"></form>
+            <form action="{% url "web:income" %}" method="get"><input class="btn btn-danger" value="cancel" type="submit">{% csrf_token %}</form>
         {% else %}
-            <form action="{% url "web:expense" %}" method="get"><input class="btn btn-danger" value="cancel" type="submit"></form>
+            <form action="{% url "web:expense" %}" method="get"><input class="btn btn-danger" value="cancel" type="submit">{% csrf_token %}</form>
         {% endif %}
                 {% endif %}
     </div>

@@ -22,12 +22,11 @@ def random_str(n):
     return random_string
 
 
-@csrf_exempt
 def register(request):
     """register user."""
     if request.user.is_authenticated and not request.user.is_superuser:
         return redirect(reverse("account_manager:user"))
-    elif request.POST:
+    elif "email" in request.POST:
         email = request.POST.get("email").lower()
         password = make_password(request.POST.get("password"))
         username = request.POST.get("username").lower().title()
@@ -86,12 +85,12 @@ def user_view(request):
         return redirect(reverse("account_manager:login"))
 
 
-@csrf_exempt
+
 def login_view(request):
     """login page view."""
     if request.user.is_authenticated and not request.user.is_superuser:
         return redirect(reverse("account_manager:user"))
-    elif request.POST:
+    elif "username" in request.POST:
         username = request.POST.get("username").lower().title()
         if not User.objects.filter(username=username) or User.objects.get(username=username).is_superuser:
             context = {"message": "this user isn't exist."}
@@ -109,7 +108,7 @@ def login_view(request):
         return render(request, "account_manager/login.html", context=context)
 
 
-@csrf_exempt
+
 def change_password(request):
     """change password"""
     if request.method == "GET":
@@ -138,7 +137,7 @@ def change_password(request):
         return redirect(reverse("account_manager:login"))
 
 
-@csrf_exempt
+
 def change_username(request):
     """change password"""
     if request.method == "GET":
@@ -162,7 +161,7 @@ def change_username(request):
         return redirect(reverse("account_manager:login"))
 
 
-@csrf_exempt
+
 def change_email(request):
     """change password"""
     if request.user.is_authenticated and not request.user.is_superuser:
@@ -219,7 +218,7 @@ def change_email(request):
         return redirect(reverse("account_manager:login"))
 
 
-@csrf_exempt
+
 def logout_view(request):
     """log out user"""
     if request.method == "GET":
@@ -229,7 +228,7 @@ def logout_view(request):
         return redirect(reverse("account_manager:user"))
 
 
-@csrf_exempt
+
 def delete_account_view(request):
     """delete_account_view"""
     if request.method == "GET":
@@ -240,7 +239,7 @@ def delete_account_view(request):
         return redirect(reverse("account_manager:login"))
 
 
-@csrf_exempt
+
 def forgot_password_view(request):
     """forgot pass word view"""
     if "password1" in request.POST.keys():
@@ -255,12 +254,12 @@ def forgot_password_view(request):
             this_user.save()
             login(request, this_user)
             return redirect(reverse("account_manager:user"))
-    elif request.POST:
+    elif "username" in request.POST:
         username = request.POST.get("username").lower().title()
         email = request.POST.get("email").lower()
         try:
             this_user = User.objects.get(username=username)
-        except AccountActivatingCodes.DoesNotExist:
+        except User.DoesNotExist:
             context = {"message": "username not found!"}
             return render(request, "account_manager/forgot_password.html", context=context)
         else:

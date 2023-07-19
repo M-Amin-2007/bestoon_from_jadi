@@ -9,17 +9,17 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from bestoon.settings import BASE_DIR
 
-# TODO: add csrf tokens, add js validation to form before submit
 # TODO: add suggestions part
 # TODO: change paragraphs and expressions
 now = datetime.datetime.now
+
+
 def home(request):
     """manage home request."""
     context = {"login_status":request.user.is_authenticated and not request.user.is_superuser}
     return render(request, "web/home.html", context=context)
 
 
-@csrf_exempt
 def income(request):
     """incomes"""
     if request.user.is_authenticated and not request.user.is_superuser:
@@ -98,7 +98,6 @@ def income(request):
         return redirect(reverse("account_manager:login"))
 
 
-@csrf_exempt
 def expense(request):
     """expenses"""
     if request.user.is_authenticated and not request.user.is_superuser:
@@ -176,7 +175,6 @@ def expense(request):
         return redirect(reverse("account_manager:login"))
 
 
-@csrf_exempt
 def delete_item(request, pk, db):
     """delete an income or expense from database."""
     if db == "income":
@@ -187,7 +185,6 @@ def delete_item(request, pk, db):
         return redirect(f"{reverse(f'web:{db}')}?scroll_tag=main_table&scroll_status=top")
 
 
-@csrf_exempt
 def edit_item(request, pk, db):
     """edit table methods"""
     if request.method == "GET":
@@ -224,11 +221,11 @@ def edit_item(request, pk, db):
         return redirect(f"{reverse(f'web:{db}')}?scroll_tag=id_row_{pk}&scroll_status=top")
 
 
-@csrf_exempt
 def multi_delete(request, db):
     """multi delete"""
     if db == "income":
-        if request.POST:
+        if "choice" in request.POST:
+            print(request.POST)
             items = dict(request.POST).get("choice")
             for pk in items:
                 item = Income.objects.get(pk=int(pk))
@@ -240,7 +237,7 @@ def multi_delete(request, db):
                        "scroll_tag":"main_table", "scroll_status":"top"}
             return render(request, "web/data.html", context=context)
     if db == "expense":
-        if request.POST:
+        if "choice" in request.POST:
             items = dict(request.POST).get("choice")
             for pk in items:
                 item = Expense.objects.get(pk=int(pk))

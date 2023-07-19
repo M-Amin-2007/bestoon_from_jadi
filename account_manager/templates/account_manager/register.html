@@ -7,6 +7,7 @@
         <h1>Welcome to Bestoon!</h1>
         <p>please Enter your information and press send verify email</p>
             <form method="post">
+                {% csrf_token %}
                 <div class="mb-3 form-floating">
                     <input type="text" id="id_username" name="username" class="form-control" placeholder="username" required>
                     <label for="id_username">user name</label>
